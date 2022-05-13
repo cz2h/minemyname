@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strings"
+	"strconv"
 )
 
 // A hash is a sha256 hash, as in pset01
@@ -75,6 +76,32 @@ var (
 	initialNonce = "1145141919810"
 )
 
+
+func tryMine(threadid int, nonceChan chan string) {
+	for {
+		prevBlock, _ := GetTipFromServer()
+		myBlock := Block{
+			PrevHash: prevBlock.Hash(),
+			Name: nameIntoBlock + strconv.Itoa(threadid),
+			Nonce: initialNonce,
+		}
+		// We could apply multithread in this method later.
+
+
+		// bitcount = 33
+		var bitcount uint8 = 20
+		myBlock.Mine(bitcount)
+		SendBlockToServer(myBlock)
+
+		// Check if block is appeneded.
+		prevBlock, _ = GetTipFromServer()
+		if  prevBlock.Hash() == myBlock.Hash(){
+			nonceChan <- myBlock.Nonce
+			return 
+		}
+	}
+}
+
 func main() {
 
 	fmt.Printf("NameChain Miner v0.1\n")
@@ -86,19 +113,16 @@ func main() {
 	// then submit to server.
 	// To reduce stales, poll the server every so often and update the
 	// tip you're mining off of if it has changed.
-	prevBlock, _ := GetTipFromServer()
 
-	// We could apply multithread in this method later.
-	myBlock := Block{
-		PrevHash: prevBlock.Hash(),
-		Name: nameIntoBlock,
-		Nonce: initialNonce,
+	nonceChan := make(chan string, 2)
+
+	for i := 0; i < 2; i ++ {
+		go tryMine(i, nonceChan)
 	}
 
-	// bitcount = 33
-	var bitcount uint8 = 30
-	myBlock.Mine(bitcount)
-	SendBlockToServer(myBlock)
+	for i := 0; i < 2; i ++ {
+		<-nonceChan 
+	}
 
 	return
 }

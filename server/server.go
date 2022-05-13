@@ -17,7 +17,7 @@ var (
 	chainFilename    = "./chain.txt"
 	chainOldFilename = "./chainreload.txt"
 	// bitcount = 33
-	bitcount uint8 = 30
+	bitcount uint8 = 20
 )
 
 
