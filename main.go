@@ -70,6 +70,11 @@ func BlockFromString(s string) (Block, error) {
 	return bl, nil
 }
 
+var (
+	nameIntoBlock = "zengchu2*exia*zima"
+	initialNonce = "1145141919810"
+)
+
 func main() {
 
 	fmt.Printf("NameChain Miner v0.1\n")
@@ -81,6 +86,19 @@ func main() {
 	// then submit to server.
 	// To reduce stales, poll the server every so often and update the
 	// tip you're mining off of if it has changed.
+	prevBlock, _ := GetTipFromServer()
+
+	// We could apply multithread in this method later.
+	myBlock := Block{
+		PrevHash: prevBlock.Hash(),
+		Name: nameIntoBlock,
+		Nonce: initialNonce,
+	}
+
+	// bitcount = 33
+	var bitcount uint8 = 30
+	myBlock.Mine(bitcount)
+	SendBlockToServer(myBlock)
 
 	return
 }
