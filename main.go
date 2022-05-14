@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"strconv"
+	"sync"
 )
 
 // A hash is a sha256 hash, as in pset01
@@ -77,7 +78,9 @@ var (
 )
 
 
-func tryMine(threadid int, nonceChan chan string) {
+// Try to solve the puzzle and append a new block to the chain.
+// Termiainte only when a block mined here is added to the chain.
+func tryMine(threadid int) {
 	for {
 		prevBlock, _ := GetTipFromServer()
 		myBlock := Block{
@@ -96,7 +99,6 @@ func tryMine(threadid int, nonceChan chan string) {
 		// Check if block is appeneded.
 		prevBlock, _ = GetTipFromServer()
 		if  prevBlock.Hash() == myBlock.Hash(){
-			nonceChan <- myBlock.Nonce
 			return 
 		}
 	}
@@ -114,16 +116,18 @@ func main() {
 	// To reduce stales, poll the server every so often and update the
 	// tip you're mining off of if it has changed.
 
-	numThreads := 1
-	nonceChan := make(chan string, numThreads)
+	numThreads := 3
+	var minerWaitGroup sync.WaitGroup
 
 	for i := 0; i < numThreads; i ++ {
-		go tryMine(i, nonceChan)
+		minerWaitGroup.Add(1)
+		go func() {
+			defer minerWaitGroup.Done()
+			tryMine(i)
+		} ()
 	}
 
-	for i := 0; i < numThreads; i ++ {
-		<-nonceChan 
-	}
+	minerWaitGroup.Wait()
 
 	return
 }

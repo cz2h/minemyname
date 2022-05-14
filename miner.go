@@ -78,6 +78,7 @@ func CheckWork(bl Block, targetBits uint8) bool {
 
 	var numZeroBytes int = int(targetBits / 8)
 	var bitsToCheck  uint8 = targetBits % 8
+	// Check chunk of bytes to save time.
 	for i := 0; i < numZeroBytes; i ++ {
 		if h[i] != 0 {
 			return false
@@ -88,6 +89,7 @@ func CheckWork(bl Block, targetBits uint8) bool {
 		return true
 	}
 
+	// Check remaing bits if any.
 	for i := uint8(0); i < bitsToCheck; i ++ {
 		// Check work fails when meet 1.
 		if (h[numZeroBytes] >> (7 - (i % 8))) & 0x01 ==1 {
