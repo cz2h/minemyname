@@ -114,13 +114,14 @@ func main() {
 	// To reduce stales, poll the server every so often and update the
 	// tip you're mining off of if it has changed.
 
-	nonceChan := make(chan string, 2)
+	numThreads := 1
+	nonceChan := make(chan string, numThreads)
 
-	for i := 0; i < 2; i ++ {
+	for i := 0; i < numThreads; i ++ {
 		go tryMine(i, nonceChan)
 	}
 
-	for i := 0; i < 2; i ++ {
+	for i := 0; i < numThreads; i ++ {
 		<-nonceChan 
 	}
 

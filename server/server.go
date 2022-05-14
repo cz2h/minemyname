@@ -324,6 +324,7 @@ func CheckWork(bl Block, targetBits uint8) bool {
 		// Could definitely speed this up by checking bytes at a time.
 		// Left as excercise for the reader...?
 		if (h[i/8]>>(7-(i%8)))&0x01 == 1 {
+			fmt.Println("Fail checking at index ", i)
 			return false
 		}
 	}
